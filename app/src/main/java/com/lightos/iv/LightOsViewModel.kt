@@ -312,7 +312,9 @@ class LightOsViewModel(app: Application) : AndroidViewModel(app) {
                 tools = la.toolSet,
                 systemPrompt = { buildSystemPrompt(deviceContext()) },
             )
-            conversation = agent.run(cfg.model, conversation.takeLast(24), text, host) { ev ->
+            // Trim history to whole turns: never start on a tool result orphaned from its call.
+            val history = conversation.takeLast(24).dropWhile { it.role != "user" }
+            conversation = agent.run(cfg.model, history, text, host) { ev ->
                 _events.value = _events.value + ev
             }
             _thinking.value = false

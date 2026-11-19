@@ -171,21 +171,21 @@ fun Drawer(
                 alpha = if (clamped == 0f) 0f else 1f
             }
             .background(if (glass) Color.Black.copy(alpha = 0.62f) else p.ground)
-            .draggable(Orientation.Vertical, drawerDrag, onDragStopped = { v -> onSettle(v) }),
+            .draggable(state = drawerDrag, orientation = Orientation.Vertical, onDragStopped = { v -> onSettle(v) }),
     ) {
         Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            val (items, headerIndex) = grouped
+            val (entries, headerIndex) = grouped
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize().nestedScroll(connection),
                 contentPadding = PaddingValues(top = Space.s16, bottom = Space.s24, end = if (query.isBlank()) 40.dp else 0.dp),
             ) {
                 if (query.isBlank()) {
-                    items(items.size, key = { i ->
-                        when (val it = items[i]) { is DrawerItem.Header -> "h${it.letter}"; is DrawerItem.App -> it.app.key }
+                    items(entries.size, key = { i ->
+                        when (val it = entries[i]) { is DrawerItem.Header -> "h${it.letter}"; is DrawerItem.App -> it.app.key }
                     }) { i ->
-                        when (val item = items[i]) {
+                        when (val item = entries[i]) {
                             is DrawerItem.Header -> LetterHeader(item.letter)
                             is DrawerItem.App -> AppRow(item.app, vm, view, focus)
                         }

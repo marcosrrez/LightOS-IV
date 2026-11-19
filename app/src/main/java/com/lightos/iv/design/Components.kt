@@ -12,6 +12,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -331,7 +332,7 @@ fun <T : Any> SheetHost(
 }
 
 private suspend fun androidx.compose.ui.input.pointer.PointerInputScope.detectTapOnly(onTap: () -> Unit) {
-    androidx.compose.foundation.gestures.detectTapGestures(onTap = { onTap() })
+    detectTapGestures(onTap = { onTap() })
 }
 
 // ---------------------------------------------------------------------------------------

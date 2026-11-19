@@ -3,7 +3,7 @@ package com.lightos.iv.design
 import android.os.Build
 import android.view.HapticFeedbackConstants
 import android.view.View
-import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -42,14 +42,14 @@ object Motion {
     val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
     val StandardDecelerate = CubicBezierEasing(0f, 0f, 0f, 1f)
 
-    fun <T> move(reduced: Boolean = false): AnimationSpec<T> =
+    fun <T> move(reduced: Boolean = false): FiniteAnimationSpec<T> =
         if (reduced) tween(120) else spring(dampingRatio = 0.86f, stiffness = 380f)
 
-    fun <T> snap(reduced: Boolean = false): AnimationSpec<T> =
+    fun <T> snap(reduced: Boolean = false): FiniteAnimationSpec<T> =
         if (reduced) tween(80) else spring(dampingRatio = 0.92f, stiffness = 900f)
 
-    fun <T> fadeFast(): AnimationSpec<T> = tween(120, easing = StandardDecelerate)
-    fun <T> fadeBase(): AnimationSpec<T> = tween(220, easing = EmphasizedDecelerate)
+    fun <T> fadeFast(): FiniteAnimationSpec<T> = tween(120, easing = StandardDecelerate)
+    fun <T> fadeBase(): FiniteAnimationSpec<T> = tween(220, easing = EmphasizedDecelerate)
 
     /** Release velocity (dp/s) above which a flick commits regardless of distance. */
     const val FLICK_DP_PER_S = 700f
