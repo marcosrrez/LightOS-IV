@@ -53,13 +53,17 @@ A surface is a complete palette. Components never use literal colors; they read 
 |---|---|---|---|---|---|---|
 | **OLED** (default) | `#000000` | `#121211` | `#F2EFE8` | `#A3A09A` | `#6B6965` | `#FFB547` |
 | **Glass** | wallpaper + 40% black scrim | `#141413` @ 88% | `#FFFFFF` | `#FFFFFF` @ 72% | `#FFFFFF` @ 48% | `#FFC266` |
-| **Paper** | `#F2F0EB` | `#FBFAF7` | `#141413` | `#5E5C57` | `#8F8C85` | `#B4530A` |
-| **Amber** (night reading) | `#EFE0C0` | `#F6EAD0` | `#1F1810` | `#6A5A43` | `#93826A` | `#9A3E0A` |
+| **Paper** | `#F2F0EB` | `#FBFAF7` | `#141413` | `#5E5C57` | `#85827B` | `#A34A07` |
+| **Amber** (night reading) | `#EFE0C0` | `#F6EAD0` | `#1F1810` | `#6A5A43` | `#857560` | `#9A3E0A` |
 | **Matte** | `#161615` | `#20201E` | `#E6E2D8` | `#9C988F` | `#6C6962` | `#E8A33D` |
 
 `rule` is `ink` at 12%; `press` is `ink` at 8%; `scrim` is ground-tinted at 60% (black at
 60% on dark surfaces, `#2A2416` at 35% on Paper and Amber), so a sheet never drops a black
 curtain over cream.
+
+All pairs are verified: `ink` ≥ 13:1, `inkSoft` ≥ 5:1, `inkFaint` ≥ 3.3:1 and `signal` ≥ 5:1 on
+`ground` in every solid surface. Glass is checked against a mid-grey wallpaper under its
+scrim (the worst common case).
 
 Glass text gets a soft shadow (`0, 1dp, 3dp, black @ 35%`) so it stays legible on any
 wallpaper. No other surface uses shadows.
