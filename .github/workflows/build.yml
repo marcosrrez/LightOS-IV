@@ -1,0 +1,59 @@
+name: build
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Restore signing key
+        env:
+          SIGNING_KEYSTORE_B64: ${{ secrets.SIGNING_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$SIGNING_KEYSTORE_B64" ]; then
+            echo "$SIGNING_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "LIGHTOS_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          fi
+
+      - name: Unit tests
+        run: gradle :app:testReleaseUnitTest --stacktrace
+
+      - name: Assemble release
+        env:
+          LIGHTOS_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          LIGHTOS_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          LIGHTOS_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: gradle :app:assembleRelease --stacktrace
+
+      - name: Name the APK
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          mkdir -p out
+          cp app/build/outputs/apk/release/*.apk "out/LightOS-IV-${SHA}.apk"
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LightOS-IV-apk
+          path: out/*.apk
+          retention-days: 30

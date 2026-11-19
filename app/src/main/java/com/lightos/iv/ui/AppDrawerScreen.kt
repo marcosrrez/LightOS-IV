@@ -36,6 +36,7 @@ import com.lightos.iv.LightOsViewModel
 import com.lightos.iv.data.AppEntry
 import com.lightos.iv.ui.theme.LightFonts
 import com.lightos.iv.ui.theme.LocalLightPalette
+import kotlinx.coroutines.launch
 
 private val alphabet = ('A'..'Z').toList() + '#'
 

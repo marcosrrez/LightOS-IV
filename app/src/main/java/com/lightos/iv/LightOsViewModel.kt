@@ -108,6 +108,7 @@ class LightOsViewModel(app: Application) : AndroidViewModel(app) {
     // ---- Surfaces -----------------------------------------------------------
     fun setSurface(surface: Surface) { settingsRepo.setSurface(surface) }
     fun setLightMode(on: Boolean) { settingsRepo.setLightMode(on) }
+    fun setAgentConfig(config: AgentConfig) { settingsRepo.setAgentConfig(config) }
 
     // ---- Notes -------------------------------------------------------------
     fun addNote(title: String, body: String) = notesRepo.add(title, body)
