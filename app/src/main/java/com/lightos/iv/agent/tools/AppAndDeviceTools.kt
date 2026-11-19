@@ -10,10 +10,12 @@ import com.lightos.iv.agent.ToolResult
 import com.lightos.iv.agent.bool
 import com.lightos.iv.agent.int
 import com.lightos.iv.agent.str
-import com.lightos.iv.ui.theme.Surface
+import com.lightos.iv.design.Surface
+import com.lightos.iv.command.AppSearch
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.add
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import java.util.Locale
@@ -30,7 +32,7 @@ class ListInstalledAppsTool(private val maxResults: Int = 60) : Tool {
 
     override suspend fun run(args: JsonObject, host: ToolHost): ToolResult {
         val limit = (args.int("limit") ?: maxResults).coerceAtLeast(1)
-        val apps = host.apps.apps.value.sortedBy { it.name }
+        val apps = host.apps.apps.value
         if (apps.isEmpty()) return ToolResult.ok("No apps loaded yet.")
         val rendered = apps.take(limit).joinToString("\n") { "- ${it.name} (${it.packageName})" }
         return ToolResult.ok("${apps.size} apps installed. First $limit:\n$rendered")
@@ -44,17 +46,15 @@ class SearchAppsTool : Tool {
     override fun parameters(): JsonObject = buildJsonObject {
         put("type", "object")
         putJsonObject("properties") { put("query", buildJsonObject { put("type", "string"); put("description", "app name to match") }) }
-        putJsonArray("required") { put("query") }
+        putJsonArray("required") { add("query") }
     }
 
     override fun summarize(args: JsonObject): String = "search apps: \"${args.str("query").orEmpty()}\""
 
     override suspend fun run(args: JsonObject, host: ToolHost): ToolResult {
-        val q = args.str("query")?.lowercase()?.trim().orEmpty()
+        val q = args.str("query")?.trim().orEmpty()
         if (q.isBlank()) return ToolResult.ok("No query provided.")
-        val matches = host.apps.apps.value.filter {
-            it.name.lowercase().contains(q) || it.packageName.lowercase().contains(q)
-        }
+        val matches = AppSearch.rank(q, host.apps.apps.value, 12)
         if (matches.isEmpty()) return ToolResult.ok("No apps matched \"$q\".")
         return ToolResult.ok(matches.joinToString("\n") { "- ${it.name} (${it.packageName})" })
     }
@@ -67,7 +67,7 @@ class OpenAppTool : Tool {
     override fun parameters(): JsonObject = buildJsonObject {
         put("type", "object")
         putJsonObject("properties") { put("packageName", buildJsonObject { put("type", "string"); put("description", "Android package name, e.g. com.spotify.music") }) }
-        putJsonArray("required") { put("packageName") }
+        putJsonArray("required") { add("packageName") }
     }
 
     override fun summarize(args: JsonObject): String = "open ${args.str("packageName").orEmpty()}"
@@ -93,7 +93,7 @@ class RouteToTool : Tool {
     override fun parameters(): JsonObject = buildJsonObject {
         put("type", "object")
         putJsonObject("properties") { put("destination", buildJsonObject { put("type", "string"); put("description", "address or place name") }) }
-        putJsonArray("required") { put("destination") }
+        putJsonArray("required") { add("destination") }
     }
 
     override fun summarize(args: JsonObject): String = "navigate to ${args.str("destination").orEmpty()}"
@@ -122,7 +122,7 @@ class SearchWebTool : Tool {
     override fun parameters(): JsonObject = buildJsonObject {
         put("type", "object")
         putJsonObject("properties") { put("query", buildJsonObject { put("type", "string") }) }
-        putJsonArray("required") { put("query") }
+        putJsonArray("required") { add("query") }
     }
 
     override fun summarize(args: JsonObject): String = "search web: ${args.str("query").orEmpty()}"
@@ -152,7 +152,7 @@ class ToggleTorchTool : Tool {
     override fun parameters(): JsonObject = buildJsonObject {
         put("type", "object")
         putJsonObject("properties") { put("on", buildJsonObject { put("type", "boolean"); put("description", "true to turn on, false to turn off") }) }
-        putJsonArray("required") { put("on") }
+        putJsonArray("required") { add("on") }
     }
 
     override fun summarize(args: JsonObject): String = "torch ${if (args.bool("on") == true) "on" else "off"}"
@@ -192,7 +192,7 @@ class SetSurfaceTool : Tool {
     override fun parameters(): JsonObject = buildJsonObject {
         put("type", "object")
         putJsonObject("properties") { put("surface", buildJsonObject { put("type", "string"); put("description", "oled | glass | paper | amber | matte") }) }
-        putJsonArray("required") { put("surface") }
+        putJsonArray("required") { add("surface") }
     }
 
     override fun summarize(args: JsonObject): String = "set surface ${args.str("surface").orEmpty()}"
@@ -214,7 +214,7 @@ class ReadAloudTool : Tool {
     override fun parameters(): JsonObject = buildJsonObject {
         put("type", "object")
         putJsonObject("properties") { put("text", buildJsonObject { put("type", "string"); put("description", "text to speak") }) }
-        putJsonArray("required") { put("text") }
+        putJsonArray("required") { add("text") }
     }
 
     override fun summarize(args: JsonObject): String = "read aloud"

@@ -1,39 +1,62 @@
 package com.lightos.iv
 
+import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.addCallback
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.ViewModelProvider
-import com.lightos.iv.ui.LightOsRoot
-import com.lightos.iv.ui.theme.LightOsTheme
-import com.lightos.iv.ui.theme.Surface
+import com.lightos.iv.design.Light
+import com.lightos.iv.design.LightTheme
 
+/**
+ * The single HOME activity. Edge-to-edge with transparent bars (never immersive, so the
+ * system home/back gestures work on the first swipe). Pressing Home while LightOS is in
+ * front arrives here as [onNewIntent] and returns everything to the resting screen.
+ */
 class MainActivity : ComponentActivity() {
+    private val vm: LightOsViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+        )
         super.onCreate(savedInstanceState)
-        val vm = ViewModelProvider(this)[LightOsViewModel::class.java]
 
         setContent {
             val surface by vm.surface.collectAsState()
-            LightOsTheme(surface) {
+            LightTheme(surface) {
+                val light = Light.palette.isLight
                 SideEffect {
-                    val controller = WindowCompat.getInsetsController(window, window.decorView)
-                    val lightBars = surface == Surface.Paper || surface == Surface.Amber
-                    controller.isAppearanceLightStatusBars = lightBars
-                    controller.isAppearanceLightNavigationBars = lightBars
+                    WindowCompat.getInsetsController(window, window.decorView).apply {
+                        isAppearanceLightStatusBars = light
+                        isAppearanceLightNavigationBars = light
+                    }
                 }
                 LightOsRoot(vm)
             }
         }
+    }
 
-        // A launcher never exits on back; it pops its own screen stack instead.
-        onBackPressedDispatcher.addCallback(this) { vm.onBack() }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.action == Intent.ACTION_MAIN && intent.hasCategory(Intent.CATEGORY_HOME)) vm.goHome()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        vm.onShown()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        vm.onHidden()
     }
 }

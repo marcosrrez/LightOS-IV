@@ -5,7 +5,7 @@ import com.lightos.iv.data.AppRepository
 import com.lightos.iv.data.CalendarRepository
 import com.lightos.iv.data.DeviceRepository
 import com.lightos.iv.data.NotesRepository
-import com.lightos.iv.ui.theme.Surface
+import com.lightos.iv.design.Surface
 import kotlinx.serialization.json.JsonObject
 
 /** Result of executing a tool call. `content` is fed back to the model as the tool message. */

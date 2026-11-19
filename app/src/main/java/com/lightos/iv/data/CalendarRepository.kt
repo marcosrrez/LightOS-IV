@@ -1,6 +1,7 @@
 package com.lightos.iv.data
 
 import android.Manifest
+import android.content.ContentUris
 import android.content.Context
 import android.content.pm.PackageManager
 import android.provider.CalendarContract
@@ -37,7 +38,10 @@ class CalendarRepository(context: Context) {
         cal.add(Calendar.DAY_OF_YEAR, 1)
         val end = cal.timeInMillis
 
-        val uri = CalendarContract.Instances.queryUri(start, end)
+        val uri = CalendarContract.Instances.CONTENT_URI.buildUpon().also {
+            ContentUris.appendId(it, start)
+            ContentUris.appendId(it, end)
+        }.build()
         val projection = arrayOf(
             CalendarContract.Instances.TITLE,
             CalendarContract.Instances.BEGIN,

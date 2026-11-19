@@ -14,6 +14,7 @@ import com.lightos.iv.agent.str
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.add
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 import java.text.SimpleDateFormat
@@ -31,7 +32,7 @@ class SetTimerTool : Tool {
             put("minutes", buildJsonObject { put("type", "integer"); put("description", "duration in minutes") })
             put("label", buildJsonObject { put("type", "string"); put("description", "optional label shown on screen") })
         }
-        putJsonArray("required") { put("minutes") }
+        putJsonArray("required") { add("minutes") }
     }
 
     override fun summarize(args: JsonObject): String =
@@ -55,7 +56,7 @@ class TakeNoteTool : Tool {
             put("title", buildJsonObject { put("type", "string"); put("description", "short title") })
             put("body", buildJsonObject { put("type", "string"); put("description", "the note content") })
         }
-        putJsonArray("required") { put("body") }
+        putJsonArray("required") { add("body") }
     }
 
     override fun summarize(args: JsonObject): String = "note: ${args.str("title") ?: args.str("body")?.take(40) ?: ""}"
@@ -63,7 +64,7 @@ class TakeNoteTool : Tool {
     override suspend fun run(args: JsonObject, host: ToolHost): ToolResult {
         val body = args.str("body")?.trim().orEmpty()
         if (body.isBlank()) return ToolResult.err("body is required")
-        val title = args.str("title")?.trim().ifBlank { null } ?: body.take(40)
+        val title = args.str("title")?.trim()?.ifBlank { null } ?: body.take(40)
         host.notes.add(title, body)
         return ToolResult.ok("Saved note \"$title\".")
     }
@@ -82,7 +83,8 @@ class ListRecentNotesTool : Tool {
         val limit = (args.int("limit") ?: 5).coerceIn(1, 20)
         val notes = host.notes.notes.value.take(limit)
         if (notes.isEmpty()) return ToolResult.ok("No notes yet.")
-        val rendered = notes.joinToString("\n") { "- ${it.title} (${it.date}): ${it.body.take(120)}" }
+        val fmt = SimpleDateFormat("MMM d", Locale.getDefault())
+        val rendered = notes.joinToString("\n") { "- ${it.title} (${fmt.format(Date(it.createdAt))}): ${it.body.take(160)}" }
         return ToolResult.ok("${notes.size} notes:\n$rendered")
     }
 }
@@ -138,7 +140,7 @@ class MakeDirectCallTool : Tool {
     override fun parameters(): JsonObject = buildJsonObject {
         put("type", "object")
         putJsonObject("properties") { put("number", buildJsonObject { put("type", "string"); put("description", "phone number to call") }) }
-        putJsonArray("required") { put("number") }
+        putJsonArray("required") { add("number") }
     }
 
     override fun summarize(args: JsonObject): String = "call ${args.str("number").orEmpty()}"
@@ -169,7 +171,7 @@ class SendSmsTool : Tool {
             put("number", buildJsonObject { put("type", "string"); put("description", "recipient phone number") })
             put("body", buildJsonObject { put("type", "string"); put("description", "message text") })
         }
-        putJsonArray("required") { put("number"); put("body") }
+        putJsonArray("required") { add("number"); add("body") }
     }
 
     override fun summarize(args: JsonObject): String =

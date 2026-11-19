@@ -20,7 +20,7 @@ data class AgentEvent(val kind: Kind, val text: String) {
 class Agent(
     private val client: LlmClient,
     private val tools: List<Tool>,
-    private val systemPrompt: () -> String,
+    private val systemPrompt: suspend () -> String,
 ) {
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
@@ -59,7 +59,7 @@ class Agent(
             message.content?.takeIf { it.isNotBlank() }?.let { onEvent(AgentEvent(AgentEvent.Kind.Thought, it)) }
 
             for (call in calls) {
-                onEvent(AgentEvent(AgentEvent.Kind.Tool, "${call.function.name}(${summarizeArgs(call)})"))
+                onEvent(AgentEvent(AgentEvent.Kind.Tool, describe(call)))
                 val result = executeToolCall(call, host)
                 onEvent(AgentEvent(AgentEvent.Kind.Result, result.content.take(400)))
                 working = working + ChatMessage(
@@ -85,7 +85,7 @@ class Agent(
         }
         return try {
             if (tool.requiresConfirmation) {
-                val approved = host.confirm("Confirm action", tool.summarize(args))
+                val approved = host.confirm(tool.name, tool.summarize(args))
                 if (!approved) ToolResult.ok("User declined to run this action.")
                 else tool.run(args, host)
             } else {
@@ -98,9 +98,13 @@ class Agent(
         }
     }
 
-    private fun summarizeArgs(call: ToolCall): String =
-        runCatching { json.decodeFromString(JsonObject.serializer(), call.function.arguments) }
-            .getOrNull()?.toString()?.take(80).orEmpty()
+    /** Plain-language step for the trace, e.g. "focus timer 25m", from the tool's own summary. */
+    private fun describe(call: ToolCall): String {
+        val tool = tools.firstOrNull { it.name == call.function.name } ?: return call.function.name
+        val args = runCatching { json.decodeFromString(JsonObject.serializer(), call.function.arguments.ifBlank { "{}" }) }
+            .getOrElse { JsonObject(emptyMap()) }
+        return runCatching { tool.summarize(args) }.getOrDefault(tool.name)
+    }
 
     companion object {
         private const val MAX_ITERATIONS = 6

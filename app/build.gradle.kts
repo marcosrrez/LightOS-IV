@@ -15,8 +15,8 @@ android {
         applicationId = "com.lightos.iv"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "10.0.0"
+        versionCode = 2
+        versionName = "10.1.0"
     }
 
     signingConfigs {
@@ -82,8 +82,8 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.graphics)
     implementation(libs.compose.ui.tooling.preview)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.material.icons.extended)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.animation)
 
     implementation(libs.datastore.preferences)
     implementation(libs.kotlinx.coroutines.android)
@@ -91,4 +91,6 @@ dependencies {
     implementation(libs.okhttp)
 
     debugImplementation(libs.compose.ui.tooling)
+
+    testImplementation(libs.junit)
 }
