@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -20,7 +22,7 @@ android {
     signingConfigs {
         create("release") {
             // Supplied by CI (GitHub secrets) or a local ~/.lightos/keystore.properties.
-            val local = java.util.Properties().apply {
+            val local = Properties().apply {
                 val f = File(System.getProperty("user.home"), ".lightos/keystore.properties")
                 if (f.exists()) f.inputStream().use { load(it) }
             }
