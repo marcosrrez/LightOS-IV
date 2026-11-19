@@ -80,27 +80,29 @@ DataStore, OkHttp, kotlinx.serialization. minSdk 26, target/compile 35.
 
 ## Build
 
-**Android Studio (recommended):** open this folder, let it generate the Gradle wrapper
-and download the SDK, run `app` on a device/emulator.
-
-**CLI:** needs JDK 21 (Android Studio's bundled JBR works) — your system JDK 24 is too new
-for Gradle 8.11. Set `org.gradle.java.home` in `~/.gradle/gradle.properties` to a JDK 21,
-then:
+Every push builds on GitHub Actions (`.github/workflows/build.yml`): unit tests, then a
+signed release APK uploaded as the `LightOS-IV-apk` artifact. Builds are signed with one
+stable key, so each new APK installs over the last one without losing data.
 
 ```
-gradle wrapper          # one-time, generates ./gradlew + the wrapper jar
-./gradlew :app:assembleDebug
+gh run download <run-id> -R marcosrrez/LightOS-IV -n LightOS-IV-apk
 ```
 
-> The wrapper jar isn't committed (it's binary). `gradle wrapper` or Android Studio
-> creates it from `gradle/wrapper/gradle-wrapper.properties`.
+Local builds (Android Studio or Gradle 8.11 + JDK 21) sign with the same key when
+`~/.lightos/keystore.properties` exists, and fall back to the debug key otherwise.
+
+Design rules live in [`DESIGN.md`](DESIGN.md); the code that implements them is in
+`app/src/main/java/com/lightos/iv/design/`.
 
 ## First run
 
 1. Press **Home** on the device and pick **LightOS** as the default launcher.
-2. Open **Settings** (bottom rail) → enter your provider base URL, model, and API key,
-   **save provider**. For Ollama: base URL `http://localhost:11434/v1`, blank key.
-3. Tap **⌘ ask anything**, type a request, send.
+2. Your home words are chosen from what's installed (phone, messages, maps, camera, plus
+   Notes and Focus). Long-press a word to change it; long-press empty space for surfaces.
+3. Swipe up for all apps. Tap **Search or ask** to open apps, save notes (`note …`), start
+   focus (`focus 25`) or do math instantly, on the device.
+4. For the assistant: Settings → Assistant → provider address, model and key. For Ollama:
+   `http://localhost:11434/v1`, blank key.
 
 Grant the calendar / call / SMS permissions in Settings → Permissions when you want the
 agent to use them; it asks you to confirm before it calls or texts.
